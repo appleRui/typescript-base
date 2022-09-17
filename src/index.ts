@@ -1,1 +1,5 @@
-console.log('Hello')
+const Main = () => {
+  console.log('Main');
+}
+
+Main();

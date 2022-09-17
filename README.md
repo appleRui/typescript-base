@@ -1,9 +1,13 @@
 # TypeScript　BaseProject
 
+## version
+- Node: 16.16.0
+- Yarn: 1.22.11
+
 ## usage
 ```
 yarn
-yarn start
+yarn execute
 ```
 
 ## link
