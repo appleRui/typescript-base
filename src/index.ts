@@ -1,10 +1,26 @@
 import FamilyMartWebParse from "./FamilyMartWebParse";
+import TwitterClient from "./TwitterClient";
+import fs from "fs";
+import dayjs from "dayjs";
 
-// 実行する関数
 const exec = async () => {
+  // ファミマのサイトから今週のスイーツ情報を取得
   const html = await FamilyMartWebParse.fetchHtml();
   const newDessertList = await FamilyMartWebParse.getNewDessert(html);
-  console.log(newDessertList)
+
+  // スイーツ名のツイートを取得
+  const newDessertSummaryWithTweetsList = await Promise.all(
+    newDessertList.map(async (product) => {
+    return {
+      category: product.category,
+      name: product.name,
+      price: product.price,
+      tweets: await TwitterClient.recentSearch(`ファミマ ${product.name}`, 10)
+    }
+    }));
+
+  // JSONに書き出す
+  fs.writeFileSync(`./reports/${dayjs().format('YYYYMMDD')}_report.json`, JSON.stringify(newDessertSummaryWithTweetsList));
 }
 
 exec();
