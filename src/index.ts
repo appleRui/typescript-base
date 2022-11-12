@@ -1,7 +1,5 @@
 import FamilyMartWebParse from "./FamilyMartWebParse";
 import TwitterClient from "./TwitterClient";
-import fs from "fs";
-import dayjs from "dayjs";
 
 const exec = async () => {
   // ファミマのサイトから今週のスイーツ情報を取得
@@ -18,9 +16,7 @@ const exec = async () => {
       tweets: await TwitterClient.recentSearch(`ファミマ ${product.name}`, 10)
     }
     }));
-
-  // JSONに書き出す
-  fs.writeFileSync(`./reports/${dayjs().format('YYYYMMDD')}_report.json`, JSON.stringify(newDessertSummaryWithTweetsList));
+  console.log(JSON.stringify(newDessertSummaryWithTweetsList));
 }
 
 exec();
