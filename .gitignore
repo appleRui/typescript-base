@@ -2,3 +2,4 @@ node_modules
 lib
 .env
 *_report.json
+./reports/example.json

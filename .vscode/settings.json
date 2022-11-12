@@ -1,5 +1,9 @@
 {
   "cSpell.words": [
     "infoset"
-  ]
+  ],
+  "[typescript]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
 }

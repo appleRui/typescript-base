@@ -4,7 +4,7 @@ import children from "cheerio";
 type Product = {
   name: string;
   price: string;
-}
+};
 
 class LawsonWebParse {
   private URL = "https://www.lawson.co.jp/recommend/original/dessert/";
@@ -15,30 +15,30 @@ class LawsonWebParse {
   }
 
   findByClassAttribute(element: cheerio.Cheerio, selector: string) {
-    const SEARCH_VALUE = '\n\t\t\t\t\t\t\t\t\t\t';
-    return element.find(selector).text().replace(SEARCH_VALUE, '') ?? false;
+    const SEARCH_VALUE = "\n\t\t\t\t\t\t\t\t\t\t";
+    return element.find(selector).text().replace(SEARCH_VALUE, "") ?? false;
   }
 
   hasNewProductLabel(element: cheerio.Cheerio) {
-    const SEARCH_VALUE = '\n\t\t\t\t\t\t\t\t\t\t';
-    return element.find('.ico_new').text().replace(SEARCH_VALUE, '') === '新発売';
+    const SEARCH_VALUE = "\n\t\t\t\t\t\t\t\t\t\t";
+    return element.find(".ico_new").text().replace(SEARCH_VALUE, "") === "新発売";
   }
 
   async getNewDessert(html: string) {
     const newDessertList: Product[] = [];
 
     const $ = children.load(html);
-    const newProductElements = $('.heightLineParent > li');
+    const newProductElements = $(".heightLineParent > li");
 
-    newProductElements.map((_, element) => { 
-      if(!this.hasNewProductLabel($(element))) return;
+    newProductElements.map((_, element) => {
+      if (!this.hasNewProductLabel($(element))) return;
 
-      const productName = this.findByClassAttribute($(element), '.ttl');
-      const productPrice = this.findByClassAttribute($(element), '.price > span');
+      const productName = this.findByClassAttribute($(element), ".ttl");
+      const productPrice = this.findByClassAttribute($(element), ".price > span");
       newDessertList.push({
         name: productName,
         price: productPrice,
-      })
+      });
     });
     return newDessertList;
   }
