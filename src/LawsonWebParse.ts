@@ -7,6 +7,7 @@ type Product = {
 };
 
 class LawsonWebParse {
+  // ローソンのデザート商品一覧URL
   private URL = "https://www.lawson.co.jp/recommend/original/dessert/";
 
   async fetchHtml(): Promise<string> {

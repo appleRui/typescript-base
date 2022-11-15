@@ -2,26 +2,26 @@ import dayjs from "dayjs";
 import fs from "fs";
 import AwsComprehendClient from "./AwsComprehendClient";
 import FamilyMartWebParse from "./FamilyMartWebParse";
+import LawsonWebParse from "./LawsonWebParse";
 import TwitterClient from "./TwitterClient";
 
-const exec = async () => {
+const execute = async () => {
   // ファミマのサイトから今週のスイーツ情報を取得
-  const html = await FamilyMartWebParse.fetchHtml();
-  const newDessertList = await FamilyMartWebParse.getNewDessert(html);
+  const html = await LawsonWebParse.fetchHtml();
+  const newDessertList = await LawsonWebParse.getNewDessert(html);
 
   // スイーツ名のツイートを取得 & 解析
   const newDessertSummary = await Promise.all(
     newDessertList.map(async (product, index) => {
       // Tweetを取得
-      const searchResult = await TwitterClient.recentSearch(`ファミマ ${product.name}`, 25);
+      const searchResult = await TwitterClient.recentSearch(`UchiCafe`, 50);
       // 文字解析
       const positiveScore = await AwsComprehendClient.analyze(searchResult.tweets);
       return {
-        category: product.category,
         name: product.name,
         price: product.price,
         searchResult,
-        positiveScore,
+        // positiveScore,
       };
     })
   );
@@ -30,4 +30,4 @@ const exec = async () => {
   fs.writeFileSync(`./reports/${dayjs().unix()}__report.json`, JSON.stringify(newDessertSummary));
 };
 
-exec();
+export default execute();

@@ -13,6 +13,7 @@ class AwsComprehendClient {
   constructor() {
     this.client = new ComprehendClient({
       region: REGION,
+      // PCにあるIAM情報を取得
       credentials: fromIni({ profile: "personal-comprehend-account" }),
     });
   }
