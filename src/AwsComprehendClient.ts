@@ -2,7 +2,7 @@ import {
   ComprehendClient,
   BatchDetectSentimentCommand,
   BatchDetectSentimentCommandOutput,
-  BatchDetectSentimentItemResult,
+  SentimentType,
 } from "@aws-sdk/client-comprehend";
 import { env } from "./constant/env";
 
@@ -21,16 +21,7 @@ class AwsComprehendClient {
     });
   }
 
-  private computedPositiveScore(resultList: BatchDetectSentimentItemResult[] | undefined) {
-    if (!resultList) return 0;
-    const sentiments = resultList.map((result) => {
-      console.log(result);
-      return result.Sentiment ?? "Any";
-    });
-    return sentiments.find((sentiment) => sentiment === "POSITIVE")?.length ?? 0;
-  }
-
-  async analyze(values: string[]) {
+  private async analyze(values: string[]) {
     const parameter = { TextList: values, LanguageCode: "ja" };
     const command = new BatchDetectSentimentCommand(parameter);
     const analyzeResult: BatchDetectSentimentCommandOutput = await this.client.send(command).catch((e) => {
@@ -39,7 +30,17 @@ class AwsComprehendClient {
     });
     if (analyzeResult.ErrorList?.length ?? 0 > 0)
       analyzeResult.ErrorList?.map((error) => console.error("Error❗️", error.ErrorMessage));
-    return this.computedPositiveScore(analyzeResult.ResultList);
+    return analyzeResult.ResultList;
+  }
+
+  async computedPositiveScore(values: string[]) {
+    const resultList = await this.analyze(values);
+    if (!resultList) return 0;
+
+    const sentiments = resultList.map((result) => {
+      return result.Sentiment ?? SentimentType.MIXED;
+    });
+    return sentiments.find((sentiment) => sentiment === SentimentType.POSITIVE)?.length ?? 0;
   }
 }
 
