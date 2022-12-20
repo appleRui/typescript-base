@@ -9,18 +9,18 @@ const execute = async () => {
   const html = await FamilyMartWebParse.fetchHtml();
   const newDessertList = await FamilyMartWebParse.getNewDessert(html);
 
-  // スイーツ名のツイートを取得 & 解析
+  // スイーツ名のツイートを取得&解析
   const newDessertSummary = await Promise.all(
     newDessertList.map(async (product) => {
       // ツイートを取得
       const searchResults = await TwitterClient.findTweetsBySearchKeyword(`-RT ${product.name}`);
       // Tweetのポジティブ度を算出
-      const positiveScore = await AwsComprehendClient.computedPositiveScore(searchResults.tweets);
+      const positiveRent = await AwsComprehendClient.getPositiveRate(searchResults.tweets);
       return {
         name: product.name,
         price: product.price,
         searchResults,
-        positiveScore,
+        positiveRent,
       };
     })
   );

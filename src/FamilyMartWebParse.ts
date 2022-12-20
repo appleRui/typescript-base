@@ -10,6 +10,10 @@ type Product = {
 class FamilyMartWebParse {
   private URL = "https://www.family.co.jp/goods/newgoods.html";
 
+  /**
+   * ファミリーマートの新商品ページを取得
+   * @returns HTML
+   */
   async fetchHtml(): Promise<string> {
     const { data: html } = await axios.get(this.URL).catch(() => {
       throw new Error("Failed to fetch html");
@@ -17,11 +21,22 @@ class FamilyMartWebParse {
     return html;
   }
 
+  /**
+   * 指定したクラス属性を持つ要素を取得
+   * @param element 要素
+   * @param selector セレクタ
+   * @returns 要素のテキスト
+   */
   findElementByClassAttribute(element: cheerio.Cheerio, selector: string) {
     const SEARCH_VALUE = "\n\t\t\t\t\t\t\t\t\t\t";
     return element.find(selector).text().replace(SEARCH_VALUE, "");
   }
 
+  /**
+   * 新商品を取得
+   * @param html HTML
+   * @returns 新商品の配列
+   */
   async getNewDessert(html: string) {
     const newDessertList: Product[] = [];
     const DESSERT_CATEGORIES = ["デザート", "和菓子", "焼き菓子", "コーヒー・フラッペ"];

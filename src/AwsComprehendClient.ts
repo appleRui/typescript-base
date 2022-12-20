@@ -3,44 +3,60 @@ import {
   BatchDetectSentimentCommand,
   BatchDetectSentimentCommandOutput,
   SentimentType,
+  BatchDetectSentimentItemResult,
 } from "@aws-sdk/client-comprehend";
-import { env } from "./constant/env";
+import { splitArrayIntoChunks } from "./utils/arrayUtils";
 
 const REGION = "ap-northeast-1";
 
 class AwsComprehendClient {
-  private client: ComprehendClient;
+  private readonly client: ComprehendClient;
 
   constructor() {
     this.client = new ComprehendClient({
       region: REGION,
       credentials: {
-        accessKeyId: env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID ?? "",
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? "",
       },
     });
   }
 
-  private async analyze(values: string[]) {
-    const parameter = { TextList: values, LanguageCode: "ja" };
-    const command = new BatchDetectSentimentCommand(parameter);
-    const analyzeResult: BatchDetectSentimentCommandOutput = await this.client.send(command).catch((e) => {
-      // Please use a smaller number of items in a single batch. Maximum batch size is 25.
-      throw new Error(e);
+  /**
+   * 解析を実行する関数
+   * @param fn 解析結果を加工する関数
+   * @param values 解析対象の文字列の配列
+   * @returns 解析結果
+   */
+  private async analyze<T>(fn: (resultList: BatchDetectSentimentItemResult[]) => Promise<T>, values: string[]) {
+    const resultList: BatchDetectSentimentItemResult[] = [];
+    const separateValuesArray = splitArrayIntoChunks(25, values);
+
+    separateValuesArray.map(async (separateValues) => {
+      const command = new BatchDetectSentimentCommand({
+        TextList: separateValues,
+        LanguageCode: "ja",
+      });
+      const analyzeResult: BatchDetectSentimentCommandOutput = await this.client.send(command).catch((e) => {
+        throw new Error(e);
+      });
+      if (analyzeResult.ErrorList?.length ?? 0 > 0)
+        analyzeResult.ErrorList?.map((error) => console.error("Error❗️", error.ErrorMessage));
+      resultList.push(...(analyzeResult.ResultList ?? []));
     });
-    if (analyzeResult.ErrorList?.length ?? 0 > 0)
-      analyzeResult.ErrorList?.map((error) => console.error("Error❗️", error.ErrorMessage));
-    return analyzeResult.ResultList;
+    return await fn(resultList);
   }
 
-  async computedPositiveScore(values: string[]) {
-    const resultList = await this.analyze(values);
-    if (!resultList) return 0;
-
-    const sentiments = resultList.map((result) => {
-      return result.Sentiment ?? SentimentType.MIXED;
-    });
-    return sentiments.find((sentiment) => sentiment === SentimentType.POSITIVE)?.length ?? 0;
+  /**
+   * ポジティブ度を算出する関数
+   * @param values 解析対象の文字列の配列
+   * @returns ポジティブ度(%)
+   */
+  async getPositiveRate(values: string[]) {
+    return await this.analyze<number>(async (resultList) => {
+      const positiveCount = resultList.filter((result) => result.Sentiment === SentimentType.POSITIVE).length;
+      return (positiveCount / resultList.length) * 100;
+    }, values);
   }
 }
 
