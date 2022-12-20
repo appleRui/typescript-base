@@ -4,21 +4,24 @@ import {
   BatchDetectSentimentCommandOutput,
   BatchDetectSentimentItemResult,
 } from "@aws-sdk/client-comprehend";
-import { fromIni } from "@aws-sdk/credential-providers";
+import { env } from "./constant/env";
 
 const REGION = "ap-northeast-1";
+
 class AwsComprehendClient {
   private client: ComprehendClient;
 
   constructor() {
     this.client = new ComprehendClient({
       region: REGION,
-      // PCにあるIAM情報を取得
-      credentials: fromIni({ profile: "personal-comprehend-account" }),
+      credentials: {
+        accessKeyId: env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
+      },
     });
   }
 
-  private positiveScore(resultList: BatchDetectSentimentItemResult[] | undefined) {
+  private computedPositiveScore(resultList: BatchDetectSentimentItemResult[] | undefined) {
     if (!resultList) return 0;
     const sentiments = resultList.map((result) => {
       console.log(result);
@@ -36,7 +39,7 @@ class AwsComprehendClient {
     });
     if (analyzeResult.ErrorList?.length ?? 0 > 0)
       analyzeResult.ErrorList?.map((error) => console.error("Error❗️", error.ErrorMessage));
-    return this.positiveScore(analyzeResult.ResultList);
+    return this.computedPositiveScore(analyzeResult.ResultList);
   }
 }
 

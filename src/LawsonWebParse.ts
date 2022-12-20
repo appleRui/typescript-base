@@ -15,7 +15,7 @@ class LawsonWebParse {
     return html;
   }
 
-  findByClassAttribute(element: cheerio.Cheerio, selector: string) {
+  findElementByClassAttribute(element: cheerio.Cheerio, selector: string) {
     const SEARCH_VALUE = "\n\t\t\t\t\t\t\t\t\t\t";
     return element.find(selector).text().replace(SEARCH_VALUE, "") ?? false;
   }
@@ -34,8 +34,8 @@ class LawsonWebParse {
     newProductElements.map((_, element) => {
       if (!this.hasNewProductLabel($(element))) return;
 
-      const productName = this.findByClassAttribute($(element), ".ttl");
-      const productPrice = this.findByClassAttribute($(element), ".price > span");
+      const productName = this.findElementByClassAttribute($(element), ".ttl");
+      const productPrice = this.findElementByClassAttribute($(element), ".price > span");
       newDessertList.push({
         name: productName,
         price: productPrice,

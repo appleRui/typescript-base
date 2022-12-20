@@ -11,11 +11,13 @@ class FamilyMartWebParse {
   private URL = "https://www.family.co.jp/goods/newgoods.html";
 
   async fetchHtml(): Promise<string> {
-    const { data: html } = await axios.get(this.URL);
+    const { data: html } = await axios.get(this.URL).catch(() => {
+      throw new Error("Failed to fetch html");
+    });
     return html;
   }
 
-  findByClassAttribute(element: cheerio.Cheerio, selector: string) {
+  findElementByClassAttribute(element: cheerio.Cheerio, selector: string) {
     const SEARCH_VALUE = "\n\t\t\t\t\t\t\t\t\t\t";
     return element.find(selector).text().replace(SEARCH_VALUE, "");
   }
@@ -28,11 +30,11 @@ class FamilyMartWebParse {
     const newProductElements = $(".ly-mod-infoset4-link");
 
     newProductElements.map((_, element) => {
-      const productCategory = this.findByClassAttribute($(element), ".ly-mod-infoset4-cate");
+      const productCategory = this.findElementByClassAttribute($(element), ".ly-mod-infoset4-cate");
       if (!DESSERT_CATEGORIES.includes(productCategory)) return;
 
-      const productName = this.findByClassAttribute($(element), ".ly-mod-infoset4-ttl");
-      const productPrice = this.findByClassAttribute($(element), ".ly-mod-infoset4-txt > span");
+      const productName = this.findElementByClassAttribute($(element), ".ly-mod-infoset4-ttl");
+      const productPrice = this.findElementByClassAttribute($(element), ".ly-mod-infoset4-txt > span");
       newDessertList.push({
         category: productCategory,
         name: productName,
