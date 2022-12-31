@@ -1,31 +1,41 @@
 import dayjs from "dayjs";
 import fs from "fs";
 import AwsComprehendClient from "./AwsComprehendClient";
-import FamilyMartWebParse from "./FamilyMartWebParse";
+import LawsonWeb from "./LawsonWeb";
 import TwitterClient from "./TwitterClient";
 
 const execute = async () => {
   // ファミリーマートの新商品を取得
-  const html = await FamilyMartWebParse.fetchHtml();
-  const newDessertList = await FamilyMartWebParse.getNewDessert(html);
-
+  const html = await LawsonWeb.fetchHtml();
+  const newDessertList = await LawsonWeb.getNewDessert(html);
   // スイーツ名のツイートを取得&解析
   const newDessertSummary = await Promise.all(
     newDessertList.map(async (product) => {
       // ツイートを取得
-      const searchResults = await TwitterClient.findTweetsBySearchKeyword(`-RT ${product.name}`);
+      const searchResults = await TwitterClient.findTweetsBySearchKeyword(`-RT ${product.name}`, 50);
       // Tweetのポジティブ度を算出
-      const positiveRent = await AwsComprehendClient.getPositiveRate(searchResults.tweets);
+      const positiveRate = await AwsComprehendClient.getPositiveRate(searchResults.tweets);
       return {
         name: product.name,
         price: product.price,
         searchResults,
-        positiveRent,
+        positiveRate,
       };
     })
   );
 
-  // ファイルに保存
+  // ポジティブ度が高いスイーツ
+  const bestDessert = newDessertSummary.sort((a, b) => b.positiveRate - a.positiveRate)[0];
+  console.log(
+    `
+【今週のベストスイーツ】
+${bestDessert.name}
+${bestDessert.price}
+ポジティブ度: ${bestDessert.positiveRate.toFixed(1)}%
+`
+  );
+
+  // レポートを保存
   fs.writeFileSync(`./reports/${dayjs().unix()}__report.json`, JSON.stringify(newDessertSummary));
 };
 

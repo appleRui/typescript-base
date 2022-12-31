@@ -14,10 +14,11 @@ class TwitterClient {
    * @param maxResults 最大取得件数
    * @returns ツイートの配列
    */
-  async findTweetsBySearchKeyword(searchKeyword: string) {
+  async findTweetsBySearchKeyword(searchKeyword: string, maxResults: number = 10) {
     // https://developer.twitter.com/en/docs/twitter-api/tweets/search/api-reference/get-tweets-search-recent
     const { data, meta } = await this.client.tweets.tweetsRecentSearch({
       query: searchKeyword,
+      max_results: maxResults >= 10 ? maxResults : 10,
     });
 
     return {

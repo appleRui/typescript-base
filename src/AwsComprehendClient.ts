@@ -1,3 +1,4 @@
+import "dotenv/config";
 import {
   ComprehendClient,
   BatchDetectSentimentCommand,
@@ -12,12 +13,16 @@ const REGION = "ap-northeast-1";
 class AwsComprehendClient {
   private readonly client: ComprehendClient;
 
+  /**
+   * コンストラクタ
+   * 認証を保持しているクライアントを生成する
+   */
   constructor() {
     this.client = new ComprehendClient({
       region: REGION,
       credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID ?? "",
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? "",
+        accessKeyId: process.env.COMPREHEND_ACCESS_KEY ?? "",
+        secretAccessKey: process.env.COMPREHEND_SECRET_ACCESS_KEY ?? "",
       },
     });
   }
@@ -28,13 +33,15 @@ class AwsComprehendClient {
    * @param values 解析対象の文字列の配列
    * @returns 解析結果
    */
-  private async analyze<T>(fn: (resultList: BatchDetectSentimentItemResult[]) => Promise<T>, values: string[]) {
+  private async analyze<T>(
+    fn: (resultList: BatchDetectSentimentItemResult[]) => Promise<T>,
+    values: string[]
+  ): Promise<T> {
     const resultList: BatchDetectSentimentItemResult[] = [];
     const separateValuesArray = splitArrayIntoChunks(25, values);
-
-    separateValuesArray.map(async (separateValues) => {
+    for (let i = 0; i < separateValuesArray.length; i++) {
       const command = new BatchDetectSentimentCommand({
-        TextList: separateValues,
+        TextList: separateValuesArray[i],
         LanguageCode: "ja",
       });
       const analyzeResult: BatchDetectSentimentCommandOutput = await this.client.send(command).catch((e) => {
@@ -43,7 +50,7 @@ class AwsComprehendClient {
       if (analyzeResult.ErrorList?.length ?? 0 > 0)
         analyzeResult.ErrorList?.map((error) => console.error("Error❗️", error.ErrorMessage));
       resultList.push(...(analyzeResult.ResultList ?? []));
-    });
+    }
     return await fn(resultList);
   }
 
