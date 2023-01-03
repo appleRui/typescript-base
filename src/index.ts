@@ -18,6 +18,7 @@ const execute = async () => {
       return {
         name: product.name,
         price: product.price,
+        url: product.url,
         searchResults,
         positiveRate,
       };
@@ -29,8 +30,9 @@ const execute = async () => {
   console.log(
     `
 【今週のベストスイーツ】
-${bestDessert.name}
-${bestDessert.price}
+商品名: ${bestDessert.name}
+価格: ${bestDessert.price}
+URL: ${bestDessert.url}
 ポジティブ度: ${bestDessert.positiveRate.toFixed(1)}%
 `
   );

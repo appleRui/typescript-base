@@ -4,18 +4,20 @@ import children from "cheerio";
 type Product = {
   name: string;
   price: string;
+  url: string;
 };
 
-class LawsonWeb {
-  // ローソンのデザート商品一覧URL
-  private URL = "https://www.lawson.co.jp/recommend/original/dessert/";
+// ローソンのデザート商品一覧URL
+const URL = "https://www.lawson.co.jp/recommend/original/dessert/";
+const ORIGIN = "https://www.lawson.co.jp";
 
+class LawsonWeb {
   /**
    * ローソンのデザートデザート一覧ページのHTMLを取得
    * @returns HTML
    */
   async fetchHtml(): Promise<string> {
-    const { data: html } = await axios.get(this.URL);
+    const { data: html } = await axios.get<string>(URL);
     return html;
   }
 
@@ -56,9 +58,11 @@ class LawsonWeb {
 
       const productName = this.findElementByClassAttribute($(element), ".ttl");
       const productPrice = this.findElementByClassAttribute($(element), ".price > span");
+      const productUrl = $(element).find(".img > a").attr("href");
       newDessertList.push({
         name: productName,
         price: productPrice,
+        url: ORIGIN + productUrl,
       });
     });
     return newDessertList;
