@@ -8,8 +8,8 @@ type Product = {
 };
 
 // ローソンのデザート商品一覧URL
-const URL = "https://www.lawson.co.jp/recommend/original/dessert/";
 const ORIGIN = "https://www.lawson.co.jp";
+const URL = `${ORIGIN}/recommend/original/dessert/`;
 
 class LawsonWeb {
   /**
@@ -27,9 +27,9 @@ class LawsonWeb {
    * @param selector セレクター
    * @returns 要素のテキスト
    */
-  findElementByClassAttribute(element: cheerio.Cheerio, selector: string) {
-    const SEARCH_VALUE = "\n\t\t\t\t\t\t\t\t\t\t";
-    return element.find(selector).text().replace(SEARCH_VALUE, "");
+  findElementTextByClassAttribute(element: cheerio.Cheerio, selector: string) {
+    const REPLACE_KEY = "\n\t\t\t\t\t\t\t\t\t\t";
+    return element.find(selector).text().replace(REPLACE_KEY, "");
   }
 
   /**
@@ -38,8 +38,8 @@ class LawsonWeb {
    * @returns 新発売かどうか
    */
   hasNewProductLabel(element: cheerio.Cheerio) {
-    const SEARCH_VALUE = "\n\t\t\t\t\t\t\t\t\t\t";
-    return element.find(".ico_new").text().replace(SEARCH_VALUE, "") === "新発売";
+    const findElementText = this.findElementTextByClassAttribute(element, ".ico_new");
+    return findElementText === "新発売";
   }
 
   /**
@@ -47,7 +47,7 @@ class LawsonWeb {
    * @param html HTML
    * @returns 新発売のデザート商品リスト
    */
-  async getNewDessert(html: string) {
+  async getNewDesserts(html: string) {
     const newDessertList: Product[] = [];
 
     const $ = children.load(html);
@@ -56,8 +56,8 @@ class LawsonWeb {
     newProductElements.map((_, element) => {
       if (!this.hasNewProductLabel($(element))) return;
 
-      const productName = this.findElementByClassAttribute($(element), ".ttl");
-      const productPrice = this.findElementByClassAttribute($(element), ".price > span");
+      const productName = this.findElementTextByClassAttribute($(element), ".ttl");
+      const productPrice = this.findElementTextByClassAttribute($(element), ".price > span");
       const productUrl = $(element).find(".img > a").attr("href");
       newDessertList.push({
         name: productName,

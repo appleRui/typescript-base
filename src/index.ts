@@ -7,7 +7,7 @@ import TwitterClient from "./TwitterClient";
 const execute = async () => {
   // ファミリーマートの新商品を取得
   const html = await LawsonWeb.fetchHtml();
-  const newDessertList = await LawsonWeb.getNewDessert(html);
+  const newDessertList = await LawsonWeb.getNewDesserts(html);
   // スイーツ名のツイートを取得&解析
   const newDessertSummary = await Promise.all(
     newDessertList.map(async (product) => {

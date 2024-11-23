@@ -5,7 +5,11 @@ class TwitterClient {
   private readonly client: Client;
 
   constructor() {
-    this.client = new Client(process.env.TWITTER_BEARER_TOKEN ?? "");
+    if (!process.env.TWITTER_BEARER_TOKEN) {
+      throw new Error("Twitter Bearer Token are not defined in the environment variables");
+    }
+
+    this.client = new Client(process.env.TWITTER_BEARER_TOKEN);
   }
 
   /**

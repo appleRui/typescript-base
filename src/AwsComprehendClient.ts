@@ -18,11 +18,15 @@ class AwsComprehendClient {
    * 認証を保持しているクライアントを生成する
    */
   constructor() {
+    if (!process.env.COMPREHEND_ACCESS_KEY || !process.env.COMPREHEND_SECRET_ACCESS_KEY) {
+      throw new Error("AWS credentials are not defined in the environment variables");
+    }
+
     this.client = new ComprehendClient({
       region: REGION,
       credentials: {
-        accessKeyId: process.env.COMPREHEND_ACCESS_KEY ?? "",
-        secretAccessKey: process.env.COMPREHEND_SECRET_ACCESS_KEY ?? "",
+        accessKeyId: process.env.COMPREHEND_ACCESS_KEY,
+        secretAccessKey: process.env.COMPREHEND_SECRET_ACCESS_KEY,
       },
     });
   }
@@ -48,7 +52,7 @@ class AwsComprehendClient {
         throw new Error(e);
       });
       if (analyzeResult.ErrorList?.length ?? 0 > 0)
-        analyzeResult.ErrorList?.map((error) => console.error("Error❗️", error.ErrorMessage));
+        analyzeResult.ErrorList?.map((error) => console.error("[Error]", error.ErrorMessage));
       resultList.push(...(analyzeResult.ResultList ?? []));
     }
     return await fn(resultList);
